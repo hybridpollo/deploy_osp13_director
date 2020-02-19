@@ -12,3 +12,16 @@ documented in the [Red Hat OpenStack Platform 13 Director Installation Guide](ht
   * Satellite Organization
   * Activation Key
   * Access to the [Red Hat Repositories](https://access.redhat.com/documentation/en-us/red_hat_openstack_platform/13/html/director_installation_and_usage/chap-requirements#sect-Repository_Requirements)
+* Ansible 2.x. This was developed with Ansible 2.9 however older Ansible 2.x versions may work with some minor modifications.
+
+
+#### General Usage
+
+Ensure that passwordless ssh is configured to the target host if not using
+local.
+
+If using the vaulted variables, ensure that you encrypt the vars file:
+`ansible-vault encrypt vault/vars/director-vars.yaml`
+
+Proceed to run the playbook against the target machine:
+`ansible-playbook -i inventory.yaml --ask-vault-pass  director-deploy.yaml`
