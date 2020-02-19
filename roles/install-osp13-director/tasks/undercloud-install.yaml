@@ -1,0 +1,54 @@
+---
+- name: 'Install tripleo | undercloud packages.'
+  yum: 
+    name: '{{ uc_rpm_packages }}'
+    state: installed
+    update_cache: yes
+  register: result
+  until: result is succeeded 
+  retries: 10
+  delay: 5
+  tags: undercloud_install
+
+- name: 'Create templates and image directories'
+  file:
+    path: '{{ uc_home_path }}/{{ item }}'
+    owner: '{{ uc_user }}'
+    group: '{{ uc_group }}'
+    mode: 0755
+    state: directory
+  loop:
+    '{{ uc_dirs }}'
+  tags: undercloud_install
+
+- name: 'Extracting overcloud deployment images into the {{ uc_home_path }}/overcloud_images directory.'
+  unarchive:
+    remote_src: yes
+    src: '{{ item }}'
+    dest: '{{ uc_home_path }}/overcloud_images'
+  loop:
+    - /usr/share/rhosp-director-images/overcloud-full-latest.tar
+    - /usr/share/rhosp-director-images/ironic-python-agent-latest.tar
+  tags:
+    - fetch_overcloud_images
+    - undercloud_install
+
+- name: 'Configure the undercloud.conf for OSP 13 from a template.'
+  template:
+    src: undercloud.conf.j2
+    dest: '{{ uc_home_path }}/undercloud.conf'
+    owner: stack
+    group: stack
+    mode: 0644
+  register: config_gen
+  tags: undercloud_install
+
+- name: 'Perform the undercloud installation'
+  shell: >
+    openstack undercloud install
+  args:
+    chdir: /home/stack
+  become: yes
+  become_user: stack
+  when: config_gen.changed 
+  tags: undercloud_install

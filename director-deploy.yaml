@@ -1,0 +1,24 @@
+---
+# Main Playbook to Automate Red Hat OpenStack Platform 13 Director Software in a
+# virtual machine or host
+# This playbook assumes the following has been provisioned
+# 1 x RHEL 7.x Virtual Machine with ssh access
+# 2 x vnics 1 x ssh/management and 1 x provisioning
+# Passwordless ssh from deloyment host running this playbook
+# The role install-osp13-director
+
+# variables defined on this playbook take precedence over those in 
+# roles/install-osp13-director/defaults/main.
+
+- name: 'Configuring Undercloud on {{ uc_short_hostname }}.{{ domain }} for installation of RHOSP 13.'
+  hosts: undercloud
+  roles:
+    - role: install-osp13-director
+  vars_files:
+    - vault/vars/director-vars.yaml
+  vars:
+    github_ssh_keys:
+      - /home/arlaporte/.ssh/id_rsa
+      - /home/arlaporte/.ssh/id_rsa.pub
+    osp_templates_repo: git@github.com:hybridpollo/osp_templates.git
+    osp_templates_branch: osp13_hci
